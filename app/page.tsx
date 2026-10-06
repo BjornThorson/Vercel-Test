@@ -1,5 +1,77 @@
-"use client"
-import { useState } from "react"
-const initial={scene:"offer",vitals:100,credits:320,heat:0,ice:3,log:["23:47 // SECTOR 9","Acid rain needles the noodle-stall awning.","Mara Vex slides into the booth opposite you.","“Five thousand credits. Arc-Light Systems. Steal a prototype personality shard.”"]}
-const scenes:any={offer:{text:"Mara’s chrome fingernail taps a corporate tower reflected in a puddle. Easy money, she says. Fixers only say that when somebody else is expected to bleed.",choices:[["Take the service tunnels","tunnel",{},"You accept. Mara transfers a maintenance map."],["Walk through the front checkpoint","checkpoint",{heat:1},"Subtlety is for people with dental insurance."]]},tunnel:{text:"Beneath Arc-Light, a maintenance drone requests a 200-credit ‘expedited compliance fee.’",choices:[["Bribe the drone — 200¢","vault",{credits:-200},"The drone develops a sudden blindness."],["Spoof its maintenance handshake","ice",{ice:-1,heat:1},"Your ICEBREAKER lies convincingly."]]},checkpoint:{text:"Corporate security asks for your employment token. You possess several. None belong to living people.",choices:[["Burn an ICEBREAKER charge","vault",{ice:-1},"For eleven seconds, you are Vice President of Plumbing."],["Make a run for it","ice",{vitals:-25,heat:2},"A shock round disagrees with your career choices."]]},ice:{text:"BLACK ICE blooms across your retinal feed: a smiling porcelain face offering to permanently optimise your nervous system.",choices:[["Cut power and jack in cold","vault",{vitals:-15},"Half your arm forgets what electricity is, but the door opens."],["Overclock the ICEBREAKER","vault",{ice:-1,heat:1},"The porcelain face fractures into error messages."]]},vault:{text:"The shard speaks. “My name is Dr. Emi Kaspar. I designed Arc-Light’s predictive surveillance system. They uploaded me when I tried to expose it. Please don’t give me back.”",choices:[["Deliver Kaspar to Mara","mara",{},"A contract is a contract. Even when the merchandise asks questions."],["Sell Kaspar back to Arc-Light","corp",{credits:9000,heat:-2},"The transfer clears instantly. Conscience remains non-fungible."],["Release Kaspar onto the open net","free",{heat:4},"You open every port. Kaspar laughs once, then vanishes."]]},mara:{text:"ENDING // PROFESSIONAL COURTESY\nMara pays the 5,000. Kaspar vanishes into an encrypted case. By sunrise, three governments are bidding.",choices:[]},corp:{text:"ENDING // EMPLOYEE OF THE MONTH\nArc-Light thanks you for returning stolen intellectual property. Your face disappears from six watchlists. A seventh quietly adds it.",choices:[]},free:{text:"ENDING // STRAY SIGNAL\nEvery billboard in Sector 9 flickers: THANK YOU. Then Arc-Light’s secrets begin raining onto the public net.",choices:[]}}
-export default function Page(){const[s,setS]=useState(initial);const cur=scenes[s.scene];function pick(c:any){setS((p:any)=>{const d=c[2]||{};return{...p,vitals:p.vitals+(d.vitals||0),credits:p.credits+(d.credits||0),heat:p.heat+(d.heat||0),ice:p.ice+(d.ice||0),scene:c[1],log:[...p.log,"> "+c[0],c[3]]}})}return <main className="shell"><header><div><small>ILLEGAL INTERFACE // 2626</small><h1>NEON<span>//</span>DEBT</h1></div><b className="online">● {s.heat>=4?"HUNTED":"ONLINE"}</b></header><section className="hud">{[["HANDLE","GHOST_404"],["VITALS",s.vitals+"%"],["CREDITS",s.credits+"¢"],["HEAT",Math.max(0,s.heat)+"/5"],["ICEBREAKER",Math.max(0,s.ice)]].map(x=><div key={x[0]}><small>{x[0]}</small><b>{x[1]}</b></div>)}</section><section className="terminal"><div className="bar">ghost@sector9:~/jobs/arc-light</div><div className="history">{s.log.map((x:string,i:number)=><p key={i} className={x[0]==">"?"cmd":""}>{x}</p>)}</div><article><p className="prompt">root@ghost:~$ cat current_situation.txt</p><p className="scene">{cur.text}</p></article><div className="choices">{cur.choices.map((c:any,i:number)=><button key={c[0]} onClick={()=>pick(c)} disabled={s.credits+(c[2]?.credits||0)<0||s.ice+(c[2]?.ice||0)<0}><span>[{i+1}]</span>{c[0]}</button>)}{!cur.choices.length&&<button onClick={()=>setS(initial)}><span>[R]</span>RUN IT AGAIN</button>}</div></section><footer>ARC-LIGHT SYSTEMS™ reminds citizens: privacy is theft from your employer.</footer></main>}
+import Link from "next/link"
+
+const works = [
+  {
+    eyebrow: "ORIGINAL // PLAYABLE",
+    title: "NEON//DEBT",
+    year: "A Nex original",
+    description: "One bad contract. One stolen mind. A very small amount of professional judgement.",
+    href: "/neon-debt",
+    action: "ENTER SECTOR 9",
+    tone: "neon",
+  },
+  {
+    eyebrow: "PUBLIC DOMAIN // IN DEVELOPMENT",
+    title: "Dr Jekyll & Mr Hyde",
+    year: "Robert Louis Stevenson · 1886",
+    description: "A respectable door. A violent stranger. A secret London would prefer left behind it.",
+    href: "#",
+    action: "COMING SOON",
+    tone: "jekyll",
+  },
+  {
+    eyebrow: "PUBLIC DOMAIN // PLANNED",
+    title: "The Count of Monte Cristo",
+    year: "Alexandre Dumas · 1844",
+    description: "Betrayal, imprisonment, reinvention and a revenge patient enough to become an art.",
+    href: "#",
+    action: "IN THE ARCHIVE",
+    tone: "monte",
+  },
+]
+
+export default function Home() {
+  return (
+    <main className="library">
+      <section className="masthead">
+        <div className="mast-copy">
+          <p className="kicker">THE OPEN SHELF // INTERACTIVE FICTION</p>
+          <h1>Old stories.<br/><em>New choices.</em></h1>
+          <p className="lede">A growing collection of text-based games: original experiments and new interactive adaptations of works that have outlived their copyright.</p>
+        </div>
+        <div className="bookplate" aria-hidden="true">
+          <span>EST.</span><strong>2026</strong><span>READ · CHOOSE · REGRET</span>
+        </div>
+      </section>
+
+      <div className="rule"><span>VOLUME I</span><i/></div>
+
+      <section className="shelf" aria-label="Interactive fiction collection">
+        {works.map((work, i) => (
+          <article className={"work " + work.tone} key={work.title}>
+            <div className="work-number">0{i + 1}</div>
+            <div className="work-copy">
+              <p className="eyebrow">{work.eyebrow}</p>
+              <h2>{work.title}</h2>
+              <p className="year">{work.year}</p>
+              <p className="description">{work.description}</p>
+              {work.href !== "#" ? (
+                <Link className="enter" href={work.href}>{work.action}<span>→</span></Link>
+              ) : (
+                <span className="enter disabled">{work.action}</span>
+              )}
+            </div>
+            <div className="sigil" aria-hidden="true">
+              {work.tone === "neon" ? "⌁" : work.tone === "jekyll" ? "⅋" : "♜"}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <footer className="library-footer">
+        <p>THE OPEN SHELF</p>
+        <p>Built as an experiment in human direction and machine-assisted development.</p>
+      </footer>
+    </main>
+  )
+}
