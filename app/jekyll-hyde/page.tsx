@@ -4,9 +4,15 @@ import {useEffect,useState} from "react"
 
 type G={scene:string;clues:string[];flags:string[];trust:Record<string,number>;notes:string[];ending?:string}
 type Choice={text:string;to:string;clue?:string;flag?:string;trust?:[string,number];show?:(g:G)=>boolean}
+type Deduction={id:string;title:string;needs:string[];result:string}
 type Scene={kicker:string;title:string;body:(g:G)=>string[];choices:(g:G)=>Choice[]}
 const has=(g:G,x:string)=>g.clues.includes(x)||g.flags.includes(x)
 const start:G={scene:"door",clues:[],flags:[],trust:{enfield:1,poole:1,lanyon:1,jekyll:2},notes:["Enfield stopped beside a neglected door." ]}
+const deductions:Deduction[]=[
+{id:"access",title:"Hyde is not merely blackmailing Jekyll",needs:["Jekyll's extraordinary will","Hyde carries a key to Jekyll's laboratory","Jekyll personally ordered the household to obey Hyde"],result:"Jekyll deliberately gave Hyde inheritance, money and private access. Coercion alone no longer explains their arrangement."},
+{id:"identity",title:"Hyde's independence is doubtful",needs:["Jekyll and Hyde share the same handwriting","Jekyll experimented with divided identity"],result:"The handwriting and Lanyon's account support an impossible hypothesis: Hyde may not be a separate associate."},
+{id:"danger",title:"Jekyll is in danger inside his own house",needs:["Poole is frightened for Jekyll","Carew was killed with Jekyll's old cane"],result:"Hyde's violence and privileged access make the laboratory a danger, not a refuge."}
+]
 const scenes:Record<string,Scene>={
 door:{kicker:"SUNDAY · A BY-STREET",title:"Story of the Door",body:g=>["Enfield's walking stick stops against the kerb. Across the street, one door spoils an otherwise prosperous row: blistered paint, no bell, no knocker.","“Did you ever remark that door?” he asks.","You know Richard Enfield well enough to hear the invitation hidden inside the casual question."],choices:g=>[
 {text:"Let Enfield tell the story in his own way.",to:"enfield",trust:["enfield",1]},
@@ -69,19 +75,51 @@ jekyllAfter:{kicker:"DR JEKYLL'S LABORATORY",title:"After Carew",body:g=>["Jekyl
 {text:"Refuse the letter. Invoke the signal Jekyll gave you and summon Lanyon now.",to:"finalRescue",show:g=>has(g,"jekyllSignal"),flag:"summonedLanyon"},
 {text:"Trust Jekyll one last time.",to:"window",trust:["jekyll",1]}
 ]},
-guest:{kicker:"UTTERSON'S HOUSE",title:"The Hand",body:g=>["Mr Guest studies the letter, then a note from Jekyll.","“A rather singular resemblance,” he says.","The hands are essentially the same, differently sloped.","The blackmail theory collapses. Either Jekyll forged Hyde's letter—or the truth is stranger than forgery."],choices:g=>[
-{text:"Take the comparison to Jekyll and demand an explanation.",to:"finalConfront",clue:"Jekyll and Hyde share the same handwriting"},
-{text:"Give the evidence to Newcomen.",to:"finalLaw",clue:"Jekyll and Hyde share the same handwriting"}
+guest:{kicker:"UTTERSON'S HOUSE",title:"The Hand",body:g=>["Mr Guest studies Hyde's letter beside one of Jekyll's dinner invitations. He does not know what you suspect.","He lays the pages side by side. The resemblance is not in one letter but in habit: pressure, spacing, the impatient return of the pen.","“The two hands are in many points identical,” he says. “Only differently sloped.”","You lock both papers away. A fact is not yet an explanation."],choices:g=>[
+{text:"Keep the comparison private and observe what Jekyll does next.",to:"recovery",clue:"Jekyll and Hyde share the same handwriting"},
+{text:"Give the comparison to Inspector Newcomen.",to:"finalLaw",clue:"Jekyll and Hyde share the same handwriting"}
 ]},
-window:{kicker:"MONTHS LATER · THE COURTYARD",title:"Incident at the Window",body:g=>["You and Enfield see Jekyll at an upstairs window. He looks like a prisoner.","For a moment he smiles at you.","Then terror crosses his face and the window slams shut.","Enfield walks on in silence. This time, silence feels like cowardice."],choices:g=>[
-{text:"Go back and knock. Tonight.",to:"finalConfront",flag:"windowReturn"},
-{text:"Respect the closed door.",to:"finalCanon"}
+recovery:{kicker:"NOVEMBER–JANUARY",title:"A Season of Relief",body:g=>["Hyde vanishes. Jekyll emerges.","For nearly two months your friend becomes the man London remembers: dinners, charitable subscriptions, old acquaintances restored. You dine with him and begin, against your training, to believe a problem may truly have ended.","Then Jekyll's door is closed to you. It remains closed. Poole gives the same answer each time.","You go to Lanyon expecting irritation and find a man who appears to have aged years in days."],choices:g=>[
+{text:"Ask Lanyon what happened between him and Jekyll.",to:"lanyonIll"},
+{text:"Say nothing of Jekyll. Sit with your dying friend.",to:"lanyonIll",trust:["lanyon",1]}
 ]},
-finalRescue:{kicker:"THE LABORATORY · BEFORE MIDNIGHT",title:"The Friend Who Came When Called",body:g=>["Lanyon comes because you ask him to, complaining all the way.","Jekyll opens the door himself. He is shaking. On the table: salts, a phial, and a mixture the colour of bruised wine.","Because you forced the crisis before isolation became absolute, Jekyll confesses while he is still Jekyll. Lanyon sees the transformation and survives the knowledge long enough to help.","The formula is destroyed. Henry lives. Hyde does not return.","Jekyll loses reputation, practice and much of his fortune. He keeps his life. Years later you remain his solicitor, which is perhaps the least surprising part of the affair."],choices:g=>[{text:"Close the case.",to:"endRescue"}]},
-finalConfront:{kicker:"THE LABORATORY DOOR",title:"The Knock Before Midnight",body:g=>["This time the knock is not an endpoint.","Poole joins you. Your accumulated evidence gives you something stronger than suspicion: a reason to refuse every polite lie from behind the door.","When the voice inside claims Jekyll is unavailable, you answer with the handwriting, the cane, the key, the will—whatever the case has actually given you.","The door opens before you need the axe."],choices:g=>[
+lanyonIll:{kicker:"CAVENDISH SQUARE",title:"A Man Under Sentence",body:g=>["Lanyon's colour is gone. The hearty physician who laughed at Jekyll's science now speaks like a man who has seen his own death approaching.","At Jekyll's name he raises a trembling hand. “I wish to see or hear no more of Dr Jekyll.”","He will not tell you why. One day, after his death, you may learn the right and wrong of it.","Within a fortnight Hastie Lanyon is dead."],choices:g=>[
+{text:"Examine the packet Lanyon left for you.",to:"packet",clue:"Lanyon died after a final encounter connected to Jekyll"}
+]},
+packet:{kicker:"UTTERSON'S HOUSE · AFTER MIDNIGHT",title:"Not to Be Opened",body:g=>["The envelope is addressed in Lanyon's hand. Inside is another, sealed more heavily.","The instruction is precise: not to be opened until the death or disappearance of Dr Henry Jekyll.","A dead friend has given you evidence and forbidden you to read it. As a solicitor, you understand the force of instructions. As a friend, you understand their cruelty."],choices:g=>[
+{text:"Seal it in your private safe as instructed.",to:"window",flag:"packetSealed",clue:"Lanyon's sealed narrative"},
+{text:"Break the seal now.",to:"lanyonNarrative",flag:"packetBroken",clue:"Lanyon's sealed narrative"}
+]},
+lanyonNarrative:{kicker:"LANYON'S NARRATIVE",title:"The Impossible Witness",body:g=>["Lanyon describes a registered letter from Jekyll: force the cabinet, remove a drawer of powders and a phial, wait at midnight for a messenger.","The messenger was Hyde.","Before Lanyon's eyes Hyde mixed the drug, drank, convulsed—and became Henry Jekyll.","The page trembles in your hand. Lanyon's death is suddenly comprehensible. So is almost everything else."],choices:g=>[
+{text:"Go to Jekyll at once with Lanyon's testimony.",to:"finalConfront",flag:"knowsIdentity",clue:"Lanyon witnessed Hyde transform into Jekyll"}
+]},
+window:{kicker:"A SUNDAY WALK · THE COURTYARD",title:"Incident at the Window",body:g=>["Enfield leads you again past the old door. By mutual consent you enter the court behind Jekyll's house.","Jekyll sits at an upper window like a prisoner taking air. You call up to him. For a moment the three of you manage an ordinary conversation.","Then the smile is struck from Jekyll's face. An expression of terror and despair replaces it.","The window comes down. You and Enfield leave in silence. Neither man attempts an explanation."],choices:g=>[
+{text:"Return alone and ask Poole whether the household has seen the same terror.",to:"pooleUnease",show:g=>has(g,"Poole is frightened for Jekyll")},
+{text:"Jekyll has refused you before. Wait until you have cause to override him.",to:"pooleNight"}
+]},
+pooleUnease:{kicker:"JEKYLL'S HOUSE · SERVANTS' HALL",title:"Below Stairs",body:g=>["Poole does not pretend surprise when you return.","For days the laboratory door has remained locked. Orders arrive on slips of paper. The voice from within sounds wrong to him.","Most disturbing is the medicine. The unseen occupant has sent Poole from chemist to chemist seeking a particular salt, rejecting every batch as impure.","You ask whether Poole has seen his master. He looks at you for a long time before saying, “I have seen someone.”"],choices:g=>[
+{text:"Ask what he means by someone.",to:"pooleFigure",clue:"The cabinet occupant is desperately seeking an old chemical salt"},
+{text:"Tell Poole to send for you the instant he fears for Jekyll's life.",to:"pooleNight",flag:"pooleReady"}
+]},
+pooleFigure:{kicker:"SERVANTS' HALL",title:"A Figure in the Laboratory",body:g=>["Poole once surprised a figure searching among crates in the theatre. It cried out and fled upstairs.","Too small for Jekyll, he says. Moving differently.","“It was Mr Hyde, sir. I swear it.”","The servants believe their master has been murdered and his killer has occupied the cabinet."],choices:g=>[
+{text:"Do not endorse the servants' conclusion. Tell Poole to send for you if the door remains shut.",to:"pooleNight",clue:"Poole saw a smaller figure inside Jekyll's laboratory",flag:"pooleReady"}
+]},
+pooleNight:{kicker:"THE LAST NIGHT",title:"Poole at the Fireside",body:g=>["One evening Poole appears at your house without being announced.","His manner settles the question before his words do. “Mr Utterson, sir, there is something wrong.”","At Jekyll's house every servant is gathered in the hall. One maid begins to cry when she sees you. From across the courtyard comes the measured tread of someone pacing the cabinet.","Poole puts a scrap of paper in your hand: another demand for the old salt, written in the hand you know."],choices:g=>[
+{text:"Compare the note with the papers in your case before deciding what to do.",to:"deductionGate",clue:"The cabinet occupant writes in Jekyll's hand"},
+{text:"Ask Poole to describe everything he has heard and seen tonight.",to:"lastNightEvidence",clue:"The cabinet occupant writes in Jekyll's hand"}
+]},
+lastNightEvidence:{kicker:"THE LAST NIGHT",title:"The Voice Behind the Door",body:g=>["Poole called through the door earlier. The answer begged him to leave the medicine and go.","He says it was not Jekyll's voice. Yet the written orders are unmistakably Jekyll's hand.","You remember Guest's comparison, if you made it. You remember Lanyon's sealed terror. You remember Hyde's key.","The facts no longer sit politely apart."],choices:g=>[{text:"Lay out the case papers and decide what they mean.",to:"deductionGate",clue:"The voice in the cabinet is not Jekyll's"}]},
+deductionGate:{kicker:"THE LAST NIGHT · CASE PAPERS",title:"What Do the Facts Permit?",body:g=>["You spread the papers across Jekyll's dining table. Poole waits.","A case file is useful only when facts can be made to bear upon one another. Establish any deduction the evidence supports in the case-paper column.","What you can justify now determines what you are willing to do to the cabinet door."],choices:g=>[
+{text:"Act on the conclusion that Hyde's access came from Jekyll himself.",to:"finalConfront",show:g=>has(g,"ded:access")},
+{text:"Act on the hypothesis that Jekyll and Hyde are not independent men.",to:"finalConfront",show:g=>has(g,"ded:identity")||has(g,"knowsIdentity")},
+{text:"Treat the laboratory as an immediate danger to Jekyll.",to:"finalConfront",show:g=>has(g,"ded:danger")},
+{text:"You cannot justify breaking the door.",to:"finalCanon"}
+]},
+finalConfront:{kicker:"THE LABORATORY DOOR",title:"The Cabinet Door",body:g=>["You and Poole cross the courtyard carrying a poker and an axe. The theatre is cold enough to show your breath.","At the red-baize door you call Henry Jekyll by name. The answer is a plea for mercy.","Poole whispers, “That is not my master's voice.”","Whatever theory brought you here, the door now stands between evidence and fact."],choices:g=>[
 {text:"Ask Henry Jekyll to come out, whatever shape he is wearing.",to:"endMercy"},
 {text:"Tell Poole to fetch the police.",to:"endLaw"}
 ]},
+finalRescue:{kicker:"THE LABORATORY · BEFORE MIDNIGHT",title:"The Friend Who Came When Called",body:g=>["Lanyon comes because you ask him to, complaining all the way.","Jekyll opens the door himself. He is shaking. On the table: salts, a phial, and a mixture the colour of bruised wine.","Because you forced the crisis before isolation became absolute, Jekyll confesses while he is still Jekyll. Lanyon sees the transformation and survives the knowledge long enough to help.","The formula is destroyed. Henry lives. Hyde does not return.","Jekyll loses reputation, practice and much of his fortune. He keeps his life. Years later you remain his solicitor, which is perhaps the least surprising part of the affair."],choices:g=>[{text:"Close the case.",to:"endRescue"}]},
 finalLaw:{kicker:"DR JEKYLL'S HOUSE",title:"The Law Enters",body:g=>["Inspector Newcomen arrives with authority that friendship never had.","The laboratory cannot remain private. Hyde is found there; so are Jekyll's papers, chemicals and confession.","The transformation is witnessed under guard. Henry Jekyll survives to face a legal question England has no language for: whether one body can contain both murderer and victim.","You preserve the evidence. You do not preserve your friend's name."],choices:g=>[{text:"Close the case.",to:"endLaw"}]},
 finalCanon:{kicker:"THE CABINET",title:"Henry Jekyll's Full Statement",body:g=>["By the time Poole finally sends for you, the servants are terrified and the voice behind the cabinet door is no longer Jekyll's.","You break it down. Hyde lies dead in Henry's clothes.","Only the documents remain. Lanyon's narrative. Jekyll's confession. The explanation arrives when it can no longer save anyone.","This is the tragedy Stevenson wrote. You reached it by choosing, repeatedly, to respect the closed door."],choices:g=>[{text:"Close the case.",to:"endCanon"}]},
 endRescue:{kicker:"CASE CLOSED",title:"A Living Scandal",body:g=>["Henry Jekyll survives because friendship became intervention before secrecy became a coffin.","Some endings are happy only by Victorian standards."],choices:g=>[]},
@@ -90,6 +128,7 @@ endLaw:{kicker:"CASE CLOSED",title:"The Crown v. Henry Jekyll",body:g=>["The tru
 endCanon:{kicker:"CASE CLOSED",title:"The Last Statement",body:g=>["Jekyll is dead. Hyde is dead. The case is perfectly explained.","You would prefer one unanswered question and one living friend."],choices:g=>[]}
 }
 function apply(g:G,c:Choice):G{let z={...g,scene:c.to};if(c.clue&&!z.clues.includes(c.clue))z.clues=[...z.clues,c.clue];if(c.flag&&!z.flags.includes(c.flag))z.flags=[...z.flags,c.flag];if(c.trust)z.trust={...z.trust,[c.trust[0]]:(z.trust[c.trust[0]]||0)+c.trust[1]};z.notes=[...z.notes,c.text];return z}
+function makeDeduction(g:G,d:Deduction):G{if(d.needs.some(n=>!g.clues.includes(n)))return g;let f="ded:"+d.id;if(g.flags.includes(f))return g;return {...g,flags:[...g.flags,f],notes:[...g.notes,"Deduction: "+d.title]}}
 const clueText:Record<string,string>={
 "Edward Hyde":"The man Enfield saw trample a child. Named as Jekyll's beneficiary.",
 "The cheque was signed by a respected man":"Hyde's settlement was paid with a genuine cheque drawn by a respectable gentleman.",
@@ -105,17 +144,24 @@ const clueText:Record<string,string>={
 "Carew was killed with Jekyll's old cane":"The murder weapon was a cane Utterson once gave Henry Jekyll.",
 "The broken cane was found in Hyde's rooms":"The second half of the Carew murder weapon was recovered in Soho.",
 "Hyde's farewell letter":"Jekyll produced a letter purportedly written by Hyde after Carew's murder.",
-"Jekyll and Hyde share the same handwriting":"Mr Guest found the two hands essentially identical apart from slope."
+"Jekyll and Hyde share the same handwriting":"Mr Guest found the two hands essentially identical apart from slope.",
+"Lanyon died after a final encounter connected to Jekyll":"Lanyon refused further contact with Jekyll and died soon afterward, promising a posthumous explanation.",
+"Lanyon's sealed narrative":"Lanyon left a narrative to be opened only after Jekyll's death or disappearance.",
+"Lanyon witnessed Hyde transform into Jekyll":"Lanyon states that Hyde drank a chemical preparation and physically became Jekyll before his eyes.",
+"The cabinet occupant is desperately seeking an old chemical salt":"Poole has searched chemists repeatedly for a salt matching an old supply; every new sample is rejected.",
+"Poole saw a smaller figure inside Jekyll's laboratory":"Poole glimpsed a figure too small to be Jekyll and believes it was Hyde.",
+"The cabinet occupant writes in Jekyll's hand":"The laboratory orders are written in Jekyll's familiar hand.",
+"The voice in the cabinet is not Jekyll's":"Poole insists the voice behind the laboratory door is not his master's."
 }
 export default function Game(){
  const[g,setG]=useState<G>(start);const[paper,setPaper]=useState<string|null>(null);const[ready,setReady]=useState(false)
- useEffect(()=>{try{let x=localStorage.getItem("open-shelf-jh-v3");if(x)setG(JSON.parse(x))}catch{}setReady(true)},[])
- useEffect(()=>{if(ready)localStorage.setItem("open-shelf-jh-v3",JSON.stringify(g))},[g,ready])
+ useEffect(()=>{try{let x=localStorage.getItem("open-shelf-jh-v4");if(x)setG(JSON.parse(x))}catch{}setReady(true)},[])
+ useEffect(()=>{if(ready)localStorage.setItem("open-shelf-jh-v4",JSON.stringify(g))},[g,ready])
  const s=scenes[g.scene];const choices=s.choices(g).filter(c=>!c.show||c.show(g));const closed=g.scene.startsWith("end")
- const reset=()=>{localStorage.removeItem("open-shelf-jh-v3");setG(start);setPaper(null)}
+ const reset=()=>{localStorage.removeItem("open-shelf-jh-v4");setG(start);setPaper(null)}
  return <main className="jh"><header className="jh-top"><Link href="/">← THE OPEN SHELF</Link><span>THE STRANGE CASE · G. J. UTTERSON</span></header>
  <section className="jh-title"><p>THE STRANGE CASE OF</p><h1>Dr Jekyll <i>&</i><br/><b>Mr Hyde</b></h1><div className="jh-role">{closed?"CASE CLOSED":"PRIVATE PAPERS"}<br/><strong>{g.clues.length} MATERIAL FACTS</strong><br/><small>Your curiosity is not a currency.</small></div></section>
- <section className="jh-case"><aside className="jh-docket"><div><small>SCENE</small><strong>{s.kicker}</strong></div><hr/><div className="clues"><small>CASE PAPERS · SELECT TO READ</small>{g.clues.length?g.clues.map(c=><button className="clue-link" key={c} onClick={()=>setPaper(c)}>{c}</button>):<p className="muted">The case is empty.</p>}</div><hr/><div><small>CONFIDENCES</small><p className="relation">Jekyll {g.trust.jekyll>2?"trusts you":"guards himself"}</p><p className="relation">Poole {g.trust.poole>1?"will confide in you":"remains formal"}</p><p className="relation">Lanyon {g.trust.lanyon>1?"respects your discretion":"is wary"}</p></div></aside>
+ <section className="jh-case"><aside className="jh-docket"><div><small>SCENE</small><strong>{s.kicker}</strong></div><hr/><div className="clues"><small>CASE PAPERS · SELECT TO READ</small>{g.clues.length?g.clues.map(c=><button className="clue-link" key={c} onClick={()=>setPaper(c)}>{c}</button>):<p className="muted">The case is empty.</p>}</div><hr/><div><small>DEDUCTIONS</small>{deductions.map(d=>{let missing=d.needs.filter(n=>!g.clues.includes(n));let done=has(g,"ded:"+d.id);return <div className="deduction" key={d.id}><button disabled={missing.length>0||done} onClick={()=>setG(x=>makeDeduction(x,d))}>{done?"ESTABLISHED":missing.length?(missing.length+" FACT"+(missing.length>1?"S":"")+" MISSING"):"TEST DEDUCTION"} · {d.title}</button>{done&&<p>{d.result}</p>}</div>})}</div><hr/><div><small>CONFIDENCES</small><p className="relation">Jekyll {g.trust.jekyll>2?"trusts you":"guards himself"}</p><p className="relation">Poole {g.trust.poole>1?"will confide in you":"remains formal"}</p><p className="relation">Lanyon {g.trust.lanyon>1?"respects your discretion":"is wary"}</p></div></aside>
  <article className="jh-page"><p className="folio">{s.kicker}</p><h2>{s.title}</h2><div className="jh-prose">{s.body(g).map((p,i)=><p key={i}>{p}</p>)}</div>
  {paper&&<div className="evidence"><button onClick={()=>setPaper(null)}>×</button><small>CASE PAPER</small><h3>{paper}</h3><p>{clueText[paper]||"A fact Utterson considers material to the case."}</p></div>}
  {choices.length>0?<div className="jh-choices"><p>{closed?"":"HOW DO YOU PROCEED?"}</p>{choices.map((c,i)=><button key={c.text} onClick={()=>setG(x=>apply(x,c))}><span>{String(i+1).padStart(2,"0")}</span><b>{c.text}</b>{c.clue&&<em>May establish a material fact.</em>}</button>)}</div>:<div className="jh-ending"><button onClick={reset}>BEGIN AGAIN</button><Link href="/">RETURN TO THE OPEN SHELF</Link></div>}
