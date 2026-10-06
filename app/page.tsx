@@ -11,12 +11,12 @@ const works = [
     tone: "neon",
   },
   {
-    eyebrow: "PUBLIC DOMAIN // IN DEVELOPMENT",
+    eyebrow: "PUBLIC DOMAIN // PLAYABLE",
     title: "Dr Jekyll & Mr Hyde",
     year: "Robert Louis Stevenson · 1886",
     description: "A respectable door. A violent stranger. A secret London would prefer left behind it.",
-    href: "#",
-    action: "COMING SOON",
+    href: "/jekyll-hyde",
+    action: "OPEN THE CASE",
     tone: "jekyll",
   },
   {
